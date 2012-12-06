@@ -1,90 +1,87 @@
 {% extends "base.html" %}
 
+{% block site_js %}
+  {{ super() }}
+  {{ js('register') }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {{ css('register') }}
+{% endblock %}
+
 {% block page_title %}{{ _('Create Your Profile') }}{% endblock %}
 {% block body_id %}register{% endblock %}
 {% block body_classes %}box-content{% endblock %}
-{% block register_button %}{% endblock %}
 
-{# TODO move registration flow all into the phonebook app.
-   Currently spread across all three apps :( #}
 {% block main_content %}
-  <form method="post" action="{{ url('register') }}">
-    {{ csrf() }}
 
-    {#
-    TODO: Get these steps to reflect the mockups.
-    Step 1 of 3 [ <strong>register</strong> | profile | get vouched ]
-    #}
-    <h1>{{ _('Create Your Profile') }}</h1>
-
-    <div class="blue-pastels">
-      {{ form.management_form }}
-
-      {% if form.errors %}
-        <p class="errorlist">
-          {{ _("Sorry, but we couldn't create your account.
-                Please review the form, correct any errors, and try again.") }}
-        </p>
-      {% endif %}
-
-      <p id="privacy-info">
-        {% trans %}
-          At this time, profiles are only viewable by other Mozillians.
-          Community members may use them to identify and contact you about
-          events, projects and other Mozilla-related activities.
-        {% endtrans %}
-      </p>
-
-      {% for f in form.visible_fields() %}
-        {% if f.name != 'optin' %}
-          <div id="{{ f.name }}-container"
-               class="field {{ 'error' if form.errors[f.name] }}
-                            {{ f.field.widget.attrs['class'] }}">
-            {{ f.label_tag() }}
-
-            {% if f.field.required %}
-              <span class="required" title="{{ _('This field is required.') }}">
-                *
-              </span>
-            {% endif %}
-
-            {{ form.errors[f.name] }}
-            {{ f }}
-          </div>
-        {% else %}
-          <div id="{{ f.name }}-container"
-               class="field {{ 'error' if form.errors[f.name] }}
-                             {{ f.field.widget.attrs['class'] }}">
-              {% trans name=f.name,
-                       url='http://www.mozilla.org/%s/privacy-policy.html' %
-                            LANG %}
-                <label for="id_{{ name }}">
-                  I'm okay with you handling this info as you explain in your
-                  <a href="{{ url }}" target="_blank">privacy policy</a>.
-                </label>
-              {% endtrans %}
-
-            {% if f.field.required %}
-              <span class="required" title="{{ _('This field is required.') }}">
-                *
-              </span>
-            {% endif %}
-
-            {{ form.errors[f.name] }}
-            {{ f }}
-          </div>
-        {% endif %}
+  {% if (user_form.errors or profile_form.errors) %}
+    <div class="alert alert-error">
+      The following fields are required (optin is the checkbox in the last panel):
+      <ol>
+      {% for error in user_form.errors %}
+        <li>{{ error|escape }}</li>
       {% endfor %}
-
-      {{ form.code }}
-
-      <div class="clear"></div>
+      {% for error in profile_form.errors %}
+        <li>{{ error|escape }}</li>
+      {% endfor %}
+      </ol>
     </div>
-
-    <button id="submit" class="button orange">
-      {{ _('Create Account') }}
-    </button>
-
-    <div class="clear"></div>
+  {% endif %}
+  <form action="{{ url('register') }}"
+        method="POST" enctype="multipart/form-data"
+        class="form-horizontal well">
+    {{ csrf() }}
+    <h1>{{ _('Create Your Profile') }}</h1>
+    <div class="tabbable">
+      <ul class="nav nav-pills">
+        <li class="active"><a href="#start" id="1" data-toggle="tab">{{ _('Profile') }}</a></li>
+        <li><a href="#skills" id="2" data-toggle="tab">{{ _('Skills & Groups') }}</a></li>
+        <li><a href="#location" id="3" data-toggle="tab">{{ _('Location') }}</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="start">
+          <h2>{{ _('Profile') }}</h2>
+          {{ bootstrap(user_form.username) }}
+          {{ bootstrap(profile_form.full_name) }}
+          {{ bootstrap(profile_form.ircname) }}
+          {{ bootstrap(profile_form.website) }}
+          {{ bootstrap(profile_form.bio) }}
+          <button type="button" id="page2button" class="span2 btn btn-primary">{{ _('Next') }}</button>
+        </div>
+        <div class="tab-pane" id="skills">
+          <h2>{{ _('Skills & Groups') }}</h2>
+          <div class="register-groups">
+            {{ profile_form.groups.label_tag() }}
+            {{ profile_form.groups }}
+          </div>
+          <div class="register-skills">
+            {{ profile_form.skills.label_tag() }}
+            {{ profile_form.skills }}
+            {{ profile_form.languages.label_tag() }}
+            {{ profile_form.languages }}
+          </div>
+          <button type="button" id="page3button" class="span2 btn btn-primary">{{ _('Next') }}</button>
+          <button type="button" id="page1button" class="span2 btn">{{ _('Previous') }}</button>
+        </div>
+        <div class="tab-pane" id="location">
+          <h2>{{ _('Location') }}</h2>
+          <p>
+            {% trans %}
+              Let us know where in the world you are. Other vouched Mozillians
+              will be able to contact you easier and vice-versa.
+            {% endtrans %}
+          </p>
+          {{ bootstrap(profile_form.country) }}
+          {{ bootstrap(profile_form.region) }}
+          {{ bootstrap(profile_form.city) }}
+          {{ bootstrap(profile_form.optin) }}
+          <div id="edit_controls">
+            <button type="submit" class="span2 btn-large btn-primary">{{ _('Create Profile') }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </form>
 {% endblock %}

@@ -1,0 +1,26 @@
+/*!
+ * Responsive Mozilla mobile stylesheet.
+ * 480px and smaller
+ */
+@media (max-width: 480px) {
+    #language-switcher select{
+        width: auto;
+        display: inline;
+    }
+
+    .search-page .result a {
+        min-width: 250px;
+    }
+
+    #home-options .well {
+        padding-bottom: 60px;
+    }
+
+    #home-options li a {
+        margin: 15px 0;
+    }
+
+    #home-group {
+        height: 260px;
+    }
+}

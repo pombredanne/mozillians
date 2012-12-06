@@ -9,11 +9,13 @@
   <img src="{{ MEDIA_URL }}img/tumblebeast-500.png" id="tumblebeast"
        alt="{{ _('Tumblebeast from The Oatmeal (http://theoatmeal.com)') }}">
 
-  {% trans home_url=url('home') %}
+  {% trans home_url=url('home'),
+           bugzilla_url=('https://bugzilla.mozilla.org/enter_bug.cgi?'
+                         'product=Community%20Tools&component=Phonebook') %}
     <p>
       Sorry, but we encountered an unexpected error and can't process your
       request. You can try again by refreshing your browser or you can
-      <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Websites&component=mozillians.org">
+      <a href="{{ bugzilla_url }}">
       file a bug</a> letting us know what happened and we'll get right on
       fixing the problem.
     </p>
@@ -35,3 +37,7 @@
     {% endblock %}
   -->
 {% endblock main_content %}
+
+{# Don't display browserid block or user may enter a infinite authentication loop. #}
+{% block browserid_form %}
+{% endblock %}

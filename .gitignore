@@ -23,3 +23,8 @@ vagrantconfig_local.yaml
 docs/_build
 settings/*local.py
 directory
+media/uploads
+media/cache
+venv/
+mozillians.db
+media/static

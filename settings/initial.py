@@ -1,7 +1,8 @@
 """
-:py:mod:`settings.pre` contains settings that IT will usually override.
+:py:mod:`settings.initial` contains settings that IT will usually override.
 
-The overrides can happen in :py:mod:`settings.pre_local`.
+The overrides can happen in :py:mod:`settings.initial_local`
+(``settings/initial_local.py``).
 
 Settings in :py:mod:`settings.default` and :py:mod:`settings.local` depend on
 these.
@@ -14,7 +15,9 @@ from funfactory.manage import path
 NETAPP_STORAGE = path('tmp')
 
 #: Base URL for uploaded files. Could be a CDN.
-UPLOAD_URL = '/uploads'
+UPLOAD_URL = '/media/uploads'
+#: Should be MEDIA_ROOT in 1.4 but we are set in our ways.
+UPLOAD_ROOT = path('media/uploads')
 
 #: This is the base URL for the current instance of the site.
 SITE_URL = 'http://mozillians.org'

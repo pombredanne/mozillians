@@ -1,136 +1,232 @@
 {% extends "base.html" %}
 
+{% block site_js %}
+  {{ super() }}
+  {{ js('edit_profile') }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {{ css('edit_profile') }}
+{% endblock %}
+
 {% block page_title %}{{ _('Edit Your Profile') }}{% endblock %}
 {% block body_id %}edit-profile{% endblock %}
 {% block body_classes %}box-content{% endblock %}
 
 {% block main_content %}
-<form action="{{ url('phonebook.edit_profile') }}"
-      method="POST" enctype="multipart/form-data">
-    {{ csrf() }}
+  <h1>{{ _('Edit Your Profile') }}</h1>
 
-    {#
-    {% if registration_flow %}
-      Step 2 of 3 [ register | <strong>profile</strong> | get vouched ]
-    {% endif %}
-
-    <h1>{% if person.voucher_unique_id %}Mozillian{% else %}Pending{% endif %} Profile</h1>
-    #}
-
-    <h1>{{ _('Edit Your Profile') }}</h1>
-
-    {% if form.errors %}
-      <p class="form-errors">
-        {{ _("Sorry, but there were problems with the info you submitted.
-              Please review the form, correct any errors, and try again.") }}
-      </p>
-    {% endif %}
-
-    <div class="blue-pastels">
-      {{ form.management_form }}
-
-      <div class="left-col">
-        <h2>{{ _('My Info') }}</h2>
-
-        {% for f in ['first_name', 'last_name', 'biography'] %}
-          <div id="{{ form[f].name }}-container"
-            class="field {{ 'error' if form.errors[f] }}
-            {{ form[f].field.widget.attrs['class'] }}">
-
-            {{ form[f].label_tag() }}
-
-            {% if form[f].field.required %}
-              <span class="required" title="{{ _('This field is required.') }}">
-                *
-              </span>
-            {% endif %}
-
-            {{ form.errors[f] }}
-            {{ form[f] }}
-          </div>
-        {% endfor %}
-
-        <div id="photo-container"
-             class="field {{ 'error' if form.errors['photo'] }}">
-          <img alt="{{ _('Your Profile Photo') }}" id="profile-photo"
-            src="{{ url('phonebook.profile_photo', person.unique_id) }}">
-
-          {{ form['photo'].label_tag() }}
-
-          {% if form['photo'].field.required %}
-            <span class="required" title="{{ _('This field is required.') }}">
-              *
-            </span>
-          {% endif %}
-
-          {{ form.errors['photo'] }}
-          {{ form['photo'] }}
-
-          <div class="clear"></div>
-        </div>
-      </div>
-
-      <div class="right-col">
-        <h2>{{ _('My Mozilla Info') }}</h2>
-
-        {% for f in ['irc_nickname'] %}
-          <div id="{{ form[f].name }}-container"
-            class="field {{ 'error' if form.errors[f] }}
-            {{ form[f].field.widget.attrs['class'] }}">
-
-            {{ form[f].label_tag() }}
-
-            {% if form[f].field.required %}
-              <span class="required" title="{{ _('This field is required.') }}">
-                *
-              </span>
-            {% endif %}
-
-            {{ form.errors[f] }}
-            {{ form[f] }}
-          </div>
-        {% endfor %}
-
-        <h2>{{ _('My Login Info') }}</h2>
-
-        <dl id="email-container">
-          <dt>{{ _('Primary Email:') }}</dt>
-          <dd>{{ user.username }}</dd>
-        </dl>
-
-        <div class="clear"></div>
-
-        <a href="{{ url('password_change') }}">
-          {{ _('Change Password') }}
-        </a>
-      </div>
-
-      <div class="clear"></div>
-    </div>
-
-    <button id="submit" class="button orange">
-      {% if registration_flow %}
-        {{ _('Next') }}
-      {% else %}
-        {{ _('Update') }}
-      {% endif %}
-    </button>
-
-    <a href="{{ url('profile', user.unique_id) }}" id="cancel">
-      {{ _('Cancel') }}{# L10n: Cancel editing #}
-    </a>
-
-    <div class="clear"></div>
-  </form>
-
-  {% if user.username == person.username %}
-    <div id="manage-profile">
-      <a class="button red small" href="{{ url('confirm_delete') }}"
-         id="delete-profile">
-        {{ _('Delete Profile') }}
-      </a>
-
-      <div class="clear"></div>
+  {% if profile_form.errors or user_form.errors  %}
+    <div class="alert alert-error">
+      Please correct the following errors:
+      <ol>
+      {% for error in user_form.errors %}
+        <li>{{ error|escape }}</li>
+      {% endfor %}
+      {% for error in profile_form.errors %}
+        <li>{{ error|escape }}</li>
+      {% endfor %}
+      </ol>
     </div>
   {% endif %}
+  <form action="{{ url('profile.edit') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="form-horizontal edit-profile">
+    {{ csrf() }}
+    <div class="tabbable">
+      <ul class="nav nav-pills">
+        <li class="active"><a href="#1" data-toggle="tab">{{ _('Profile') }}</a></li>
+        <li><a href="#skills" data-toggle="tab">{{ _('Skills & Groups') }}</a></li>
+        <li><a href="#vouches" data-toggle="tab">{{ _('Vouches & Invites') }}</a></li>
+        <li><a href="#account" data-toggle="tab">{{ _('Account') }}</a></li>
+        <li><a href="#services" data-toggle="tab">{{ _('Services') }}</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="1">
+          <h2>{{ _('Personal') }}</h2>
+          {% include 'phonebook/includes/photo_form.html' %}
+          {{ bootstrap(profile_form.full_name) }}
+          {{ bootstrap(profile_form.ircname) }}
+          {{ bootstrap(profile_form.website) }}
+          {{ bootstrap(profile_form.bio) }}
+
+          <h2>{{ _('Location') }}</h2>
+          <p>
+            {% trans %}
+              Let us know where in the world you are. Other vouched
+              Mozillians will be able to contact you easier and
+              vice-versa.
+            {% endtrans %}
+          </p>
+          {{ bootstrap(profile_form.country) }}
+          {{ bootstrap(profile_form.region) }}
+          {{ bootstrap(profile_form.city) }}
+        </div>
+        <div class="tab-pane" id="skills">
+          <h2>{{ _('Groups') }}</h2>
+          <p class="field_description">
+            {% trans %}
+              Groups are a community of Mozillians with some relation
+              to each other. This can be an interest, team, project,
+              product or sub-community.
+            {% endtrans %}
+          </p>
+          {{ profile_form.groups.label_tag() }}
+          {{ profile_form.groups }}
+          <h2>{{ _('Skills') }}</h2>
+          <p class="field_description">
+            {% trans %}
+              A skill is the learned capacity to carry out
+              pre-determined results often with the minimum outlay of
+              time, energy, or both.
+            {% endtrans %}
+          </p>
+          {{ profile_form.skills.label_tag() }}
+          {{ profile_form.skills }}
+          <h2>{{ _('Languages') }}</h2>
+          <p class="field_description">
+            {% trans %}
+              The Mozilla Project spans over many countries and
+              languages.  Share the languages you speak to be found
+              easily by other Mozillians.
+            {% endtrans %}
+          </p>
+          {{ profile_form.languages.label_tag() }}
+          {{ profile_form.languages }}
+        </div>
+        <div class="tab-pane" id="vouches">
+          <div class="control-group">
+            <label class="control-label">{{ _('Vouched By') }}</label>
+            <div class="controls">
+              <span class="label-text">
+                {% if profile.vouched_by %}
+                  <a href="{{ url('profile', profile.vouched_by.user.username) }}" class="vouched">
+                    {{ profile.vouched_by.display_name }}
+                  </a>
+                {% elif profile.is_vouched %}
+                  {{ _('You are automatically vouched!') }}
+                {% else %}
+                  {% trans profile_url=absolutify(url('profile', user.username)) %}
+                    You aren't vouched! Send this link to a mozillian
+                    who can vouch for your contributions:
+                    <em class="underline" title="Your profile URL">
+                      {{ profile_url }}
+                    </em>
+                  {% endtrans %}
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          {% if my_vouches %}
+            <div class="control-group">
+              <label class="control-label">{{ _('Vouchees') }}</label>
+              <div class="controls">
+                <ul class="vouchees">
+                  {% for vouchee in my_vouches %}
+                    <li class="label-text">
+                      <a href="{{ url('profile', vouchee.user.username) }}" class="vouched">
+                        {{ vouchee.display_name }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <div class="tab-pane" id="account">
+          {{ bootstrap(user_form.username) }}
+          <div class="control-group">
+            <label class="control-label">{{ _('Persona Email') }}</label>
+            <div class="controls">
+              <span class="label-text">{{ user.email }}</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">{{ _('Password') }}</label>
+            <div class="controls">
+              <span class="label-text">
+                {% trans persona='https://persona.org/' %}
+                  Change your password at <a href="{{ persona }}">Persona</a>
+                {% endtrans %}
+              </span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">{{ _('Delete Account') }}</label>
+            <div class="controls">
+              <span class="label-text">
+                {% trans %}
+                  I acknowledge that deleting my account will make it tougher
+                  for me to show off my contributions and easily be found by
+                  other members of the Mozilla community.
+                {% endtrans %}
+              </span>
+              <a href="{{ url('profile.delete_confirm') }}" class="btn btn-danger">
+                {{ _('Delete Profile') }}
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="services">
+          <div class="control-group">
+            <p class="field_description">
+              {% trans bugzilla_url='http://bugzilla.mozilla.org',
+                       reps_url='http://reps.mozilla.org' %}
+                The Phonebook offers an API to help authorize
+                contributors and share profile data to other tools
+                and sites like <a href="{{ bugzilla_url }}">Bugzilla</a> and the
+                <a href="{{ reps_url }}">Mozilla Reps Portal</a>.
+              {% endtrans %}
+            </p>
+            <h2>{{ _("Privacy Settings") }}</h2>
+            <div id="privacy-settings">
+              <p class="field_description">
+                {{ bootstrap(profile_form.allows_community_sites) }}
+                {{ bootstrap(profile_form.allows_mozilla_sites) }}
+              </p>
+            </div>
+            {% if user.get_profile().is_vouched %}
+              <h2>{{ _("Developers") }}</h2>
+              <p class="field_description">
+                {% trans api_schema_url='https://wiki.mozilla.org/Mozillians/API-Specification',
+                         bugzilla_request_url=('https://bugzilla.mozilla.org/enter_bug.cgi?'
+                                               'product=Data%20Safety&cc=williamr@mozilla.com'
+                                               '&short_desc=Phonebook%20API%20Usage%20Request'),
+                         dev_form_url='http://groups.google.com/group/mozilla-dev-community-tools/' %}
+                  Take a look at the list of
+                  the <a href="{{ api_schema_url }}">API methods we've
+                  made available</a>. To use this API, you'll need to
+                  get approval from the Privacy team. To get started,
+                  <a href="{{ bugzilla_request_url }}">file
+                  a bug</a>.  If you have any questions, talk to us in
+                  our <a href="{{ dev_form_url }}">
+                  development forum</a>.
+                {% endtrans %}
+              </p>
+              <h4>Your approved apps:</h4>
+              <br/>
+              <ul>
+                {% for app in apps %}
+                  <li>{{ app.name }} {% if app.url %}<small>({{ app.url|urlize }})</small>{% endif %}<br/>
+                    <small>Key: {{ app.key }}</small>
+                  </li>
+                {% else %}
+                  {% trans %} You have no registered, active apps. {% endtrans %}
+                {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          </div>
+      </div>
+    </div>
+    <div id="edit_controls">
+      <button type="submit" class="span2 btn btn-primary">{{ _('Update') }}</button>
+      <a href="{{ url('profile', user.username) }}" class="span2 btn">
+        {{ _('Cancel') }}{# L10n: Cancel editing #}
+      </a>
+    </div>
+  </form>
 {% endblock %}

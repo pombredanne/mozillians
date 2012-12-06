@@ -16,18 +16,21 @@
 
   <form method="POST" action="{{ url('invite') }}">
     {{ csrf() }}
+    {{ form.errors.recipient }}
 
-    {% if form.errors['recipient'] %}
-      <ul class="errorlist">
-        {% for e in form.errors['recipient'] %}
-          <li>{{ e }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+    {{ bootstrap(form.recipient) }}
 
-    {{ form.recipient }}
-    <button type="submit" class="button orange small">
+    {{ bootstrap(form.message) }}
+
+    <button type="submit" class="btn bump-button">
       {{ _('Send invite') }}
     </button>
+
+    <p>
+      {% trans %}
+        <strong>Note:</strong>
+        Your name and email will be sent to whomever you invite.
+      {% endtrans %}
+    </p>
   </form>
 {% endblock %}

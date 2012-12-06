@@ -1,28 +1,60 @@
-import time
+import hashlib
+import re
+import urllib
+
+from django.conf import settings
+from django.template import Context
+from django.template.loader import get_template
+from django.utils.safestring import mark_safe
 
 import jinja2
-from funfactory.urlresolvers import reverse
 from funfactory.utils import absolutify
 from jingo import register
 
+PARAGRAPH_RE = re.compile(r'(?:\r\n|\r|\n){2,}')
 
 absolutify = register.function(absolutify)
 
 
 @register.filter
-def vouched(user):
-    if hasattr(user, 'is_vouched'):
-        return user.is_vouched()
+def paragraphize(value):
+    return jinja2.Markup(
+            u'\n\n'.join(u'<p>%s</p>' % p.replace('\n', '<br>\n')
+                         for p in PARAGRAPH_RE.split(jinja2.escape(value))))
 
 
-@register.inclusion_tag('phonebook/includes/photo.html')
+@register.inclusion_tag('phonebook/includes/search_result.html')
 @jinja2.contextfunction
-def profile_photo(context, person):
-    user = context['request'].user
-    me = bool(user.username == person.username)
-    url = reverse('phonebook.profile_photo', args=[person.unique_id])
+def search_result(context, profile):
+    d = dict(context.items())
+    d.update(profile=profile)
+    return d
 
-    if me:
-        url += '?%d' % int(time.time())
 
-    return dict(image_url=url)
+def gravatar(email, default='%simg/unknown.png' % (settings.MEDIA_URL),
+             size=175, rating='pg'):
+    """Return the Gravatar URL for an email address."""
+
+    return 'http://www.gravatar.com/avatar/%s?%s' % (
+            hashlib.md5(email.lower()).hexdigest(),
+            urllib.urlencode({'d': absolutify(default),
+                              's': str(size),
+                              'r': rating}))
+
+
+@register.function
+def bootstrap(element):
+    """Renders bootstrap forms in jinja2.
+
+    Takes an element that is either a field or an entire form and
+    renders the appropriate bootstrap elements.
+    """
+    element_type = element.__class__.__name__.lower()
+    if element_type == 'boundfield':
+        template = get_template("bootstrapform/field.html")
+        context = Context({'field': element})
+    else:
+        template = get_template("bootstrapform/form.html")
+        context = Context({'form': element})
+
+    return mark_safe(template.render(context))

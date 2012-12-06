@@ -3,10 +3,12 @@
 
 from settings import *
 
-# For absoluate urls
-DOMAIN = "localhost"
+# For absolute urls
+DOMAIN = "127.0.0.1"
 PROTOCOL = "http://"
-PORT = 8001
+PORT = 8000
+
+SITE_URL = '%s%s:%d' % (PROTOCOL, DOMAIN, PORT)
 
 DATABASES = {
     'default': {
@@ -18,40 +20,25 @@ DATABASES = {
         'PORT': '',
         'OPTIONS': {
             'init_command': 'SET storage_engine=InnoDB',
-            'charset' : 'utf8',
-            'use_unicode' : True,
+            'charset': 'utf8',
+            'use_unicode': True,
         },
         'TEST_CHARSET': 'utf8',
         'TEST_COLLATION': 'utf8_general_ci',
     },
 }
 
-#### OpenLDAP ####
-# Read/Write Master slapd
-LDAP_SYNC_PROVIDER_URI = "ldap://localhost:1389"
-# Read only mirror or load balancer
-LDAP_SYNC_CONSUMER_URI = LDAP_SYNC_PROVIDER_URI
+#Serve Profile Photos from django
+UPLOAD_URL = '/media/uploads'
 
-# Admin account
-LDAP_ADMIN_DN = 'uid=LDAPAdmin,ou=accounts,ou=system,dc=mozillians,dc=org'
-LDAP_ADMIN_PASSWORD = 'secret'
-
-# Registrar account
-LDAP_REGISTRAR_DN = 'uid=regAgent,ou=accounts,ou=system,dc=mozillians,dc=org'
-LDAP_REGISTRAR_PASSWORD = 'secret'
-
-#### django-auth-ldap ####
-AUTH_LDAP_SERVER_URI = LDAP_SYNC_PROVIDER_URI
-
-# Simple bind user
-AUTH_LDAP_BIND_DN = ""
-AUTH_LDAP_BIND_PASSWORD = ""
+# Statsd Defaults -- adjust as needed
+STATSD_HOST = 'localhost'
+STATSD_PORT = 8125
+STATSD_PREFIX = 'mozillians'
 
 ## Email
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 25
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -60,3 +47,13 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DEBUG = TEMPLATE_DEBUG = True
+
+# ElasticSearch
+ES_DISABLED = False
+ES_HOSTS = ['127.0.0.1:9200']
+ES_INDEXES = dict(default='mozillians_dev')
+
+CELERY_ALWAYS_EAGER = True
+
+JAVA_BIN = '/usr/bin/java'
+

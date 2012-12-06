@@ -1,9 +1,26 @@
 # Do some dirty, dirty things to make development nicer.
 class dev_hacks {
 
-    file { "$PROJ_DIR/settings_local.py":
+    file { "$PROJ_DIR/settings/local.py":
         ensure => file,
-        source => "$PROJ_DIR/settings_local.py-dist";
+        source => "$PROJ_DIR/settings/local.py-dist";
+    }
+
+    file { "/home/vagrant/.bashrc_vagrant":
+        ensure => file,
+        source => "$PROJ_DIR/puppet/files/home/vagrant/bashrc_vagrant",
+        owner => "vagrant", group => "vagrant", mode => 0644;
+    }
+
+    # Put our custom bash commands in a separate file.
+    exec { "amend_rc":
+        command => "echo 'if [ -f /home/vagrant/.bashrc_vagrant ] && ! shopt -oq posix; then . /home/vagrant/.bashrc_vagrant; fi' >> /home/vagrant/.bashrc"
+    }
+
+    file { "/home/vagrant/.zshrc":
+        ensure => file,
+        source => "$PROJ_DIR/puppet/files/home/vagrant/zshrc",
+        owner => "vagrant", group => "vagrant", mode => 0644;
     }
 
     case $operatingsystem {
